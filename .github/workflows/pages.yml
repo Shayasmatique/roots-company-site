@@ -1,0 +1,50 @@
+name: Publish Root's Company site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - roots-company-site.zip
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout public site package
+        uses: actions/checkout@v6
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Extract and verify static site
+        run: |
+          mkdir _site
+          unzip -q roots-company-site.zip -d _site
+          test -f _site/index.html
+          test -f _site/CNAME
+          test "$(cat _site/CNAME)" = "roots-company.eu"
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
