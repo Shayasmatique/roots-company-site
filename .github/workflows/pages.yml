@@ -5,6 +5,13 @@ on:
     branches: [main]
     paths:
       - roots-company-site.zip
+      - welcome-update/**
+      - .github/workflows/pages.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - roots-company-site.zip
+      - welcome-update/**
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -27,6 +34,8 @@ jobs:
         run: |
           mkdir _site
           unzip -q roots-company-site.zip -d _site
+          cp -R welcome-update/. _site/
+          (cd _site && sha256sum --check welcome-update.sha256)
           test -f _site/index.html
           test -f _site/CNAME
           test "$(cat _site/CNAME)" = "roots-company.eu"
